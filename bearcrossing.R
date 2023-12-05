@@ -1,12 +1,14 @@
 # ---- bring packages ---- 
 {
   library(dplyr)
+  library(ggplot2)
   library(mapview)
+  library(readr)
   library(sf)
 }
 
 # ---- bring csv ---- 
-bear <- st_read("bear.csv")
+bear <- read_csv("bear.csv")
 
 glimpse(bear)
 
