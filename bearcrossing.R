@@ -96,22 +96,18 @@ tracks_sf <- tracks_to_from %>%
             
   )
 
-mapview(test) + mapview(boundary_sf)
-
-
-
-
+# ---- view our boundary and tracks ----- 
 mapview(tracks_sf) + mapview(boundary_sf)
 
-
+# ---- add in TRUE/FALSE if linestring intersects our boundary ----- 
 tracks_sf <- tracks_sf %>% 
   mutate(
     x_bnd = st_intersects(boundary_sf, test, sparse = FALSE)[TRUE]
   )
 
+glimpse(tracks_sf)
 
 
-tracks_sf_ls %>% 
-  st_cast("POINT") 
+ 
 #find the nodes along individual bear tracks that straddle the boundary line.
 #in the real world example, the line is not perfectly north/south, so can't cheat with hardcoding the longitude
