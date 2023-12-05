@@ -29,29 +29,29 @@ points(14.22726928, 45.88602848, pch = 16, col = "green")
 # add boundary 
 lines(boundary, lwd = 2,lty = 2, col = "blue")
 
-# create sf objects.
+# ---- create sf objects ----- 
 # HELP
 # I don't know how to preserve the timestamps of the nodes in the multilinestring.
 
 tracks_sf <- tracks %>% 
   st_as_sf(coords = c("location.long", "location.lat"), 
-           # agr = "identity", 
+           # agr = "identity", # don't use arg and keep as points for now 
            crs = 4326)
   
 
 
-group_by(tag.local.identifier) %>%
-  summarise(do_union = FALSE) %>%
-  st_cast("MULTILINESTRING")
+# group_by(tag.local.identifier) %>%
+#   summarise(do_union = FALSE) %>%
+#   st_cast("MULTILINESTRING")
 
 glimpse(tracks)
 
-boundary <- boundary %>% 
-  st_as_sf(coords = c("lon","lat"), agr="identity",crs=4326) %>%
-  summarise(do_union = FALSE)%>%
+boundary_sf <- boundary %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  summarise(do_union = FALSE) %>%
   st_cast("LINESTRING")
 
-mapview(tracks) + mapview(boundary)
+mapview(tracks_sf) + mapview(boundary_sf)
 
 #find the nodes along individual bear tracks that straddle the boundary line.
 #in the real world example, the line is not perfectly north/south, so can't cheat with hardcoding the longitude
