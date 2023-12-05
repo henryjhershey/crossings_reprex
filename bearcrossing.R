@@ -74,7 +74,7 @@ tracks_tf_select <- tracks_to_from %>%
 # can remove if need be using the folllowing below or provide left_join with
 # the correct argument
 # tracks_to_from <- tracks_to_from[-c(21:24), ]
-test <- tracks_to_from %>%
+tracks_sf <- tracks_to_from %>%
   dplyr::select(lon:llat) %>% 
   pmap(make_line) %>%
   st_as_sfc(crs = 4326) %>%
