@@ -29,15 +29,22 @@ points(14.22726928, 45.88602848, pch = 16, col = "green")
 # add boundary 
 lines(boundary, lwd = 2,lty = 2, col = "blue")
 
-#create sf objects.
-#HELP
-#I don't know how to preserve the timestamps of the nodes in the multilinestring.
+# create sf objects.
+# HELP
+# I don't know how to preserve the timestamps of the nodes in the multilinestring.
 
-tracks <- tracks %>%
-  st_as_sf(coords = c("location.long", "location.lat"), agr = "identity",crs=4326) %>%
-  group_by(tag.local.identifier) %>%
+tracks_sf <- tracks %>% 
+  st_as_sf(coords = c("location.long", "location.lat"), 
+           # agr = "identity", 
+           crs = 4326)
+  
+
+
+group_by(tag.local.identifier) %>%
   summarise(do_union = FALSE) %>%
   st_cast("MULTILINESTRING")
+
+glimpse(tracks)
 
 boundary <- boundary %>% 
   st_as_sf(coords = c("lon","lat"), agr="identity",crs=4326) %>%
