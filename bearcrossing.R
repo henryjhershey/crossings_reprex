@@ -46,89 +46,67 @@ lines(boundary, lwd = 2,lty = 2, col = "blue")
 # HELP
 # I don't know how to preserve the timestamps of the nodes in the multilinestring.
 # 
-
-
-
-
-
 # ------ This is a to and from problem -----  
 
-
-
-# create duplicate column for destination 
-tracks <- tracks %>% 
+# create to and from time stamps, lats and lon
+tracks_to_from <- tracks %>% 
   mutate(
+    location.lat = as.numeric(location.lat),
+    location.long = as.numeric(location.long),
     to_ts = timestamp,
-    to_lat = location.lat,
-    to_lon = location.long,
-    from_ts = lag(timestamp),
-    from_lat = lag(location.lat),
-    from_lon = lag(location.long),
+    from_ts = dplyr::lag(timestamp),
+    llat = location.lat,
+    llon = location.long,
+    lat = dplyr::lag(location.lat, default = first(location.lat)),
+    lon = dplyr::lag(location.long, default = first(location.long)),
   ) 
 
 
+# for example purposes I selected only the columns I thouhgt would be interest 
+# to join to our linestrings of each to and from 
+tracks_tf_select <- tracks_to_from %>%
+  dplyr::select(tag.local.identifier, from_ts, to_ts, llat:lon) %>% 
+  mutate(across(.cols = c(lon, lat, llon, llat), as.character))
 
-rep_path %>%
-  mutate(across(lon:llat, as.numeric)) %>% 
+
+# rows 21-24 for whatever reason are duplicate rows...my guess is that
+# the animal is detected at the same location 3 times in a row?? 
+# can remove if need be using the folllowing below or provide left_join with
+# the correct argument
+# tracks_to_from <- tracks_to_from[-c(21:24), ]
+test <- tracks_to_from %>%
+  dplyr::select(lon:llat) %>% 
   pmap(make_line) %>%
   st_as_sfc(crs = 4326) %>%
-  st_sf() %>%  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  tracks_sf <- tracks %>% 
-  st_as_sf(coords = c("location.long", "location.lat"), 
-           # agr = "identity", # don't use arg and keep as points for now 
-           crs = 4326) %>% 
-  group_by(tag.local.identifier, timestamp) %>%
-  summarise(do_union = FALSE) %>%
-  st_cast("LINESTRING") %>% 
-  ungroup()
+  st_sf() %>% 
+  mutate(
+    lon = st_startpoint(.) %>%
+      st_coordinates(.) %>%
+      as_tibble() %>%
+      .$X %>% 
+      as.character(),
+    llon = st_endpoint(.) %>%
+      st_coordinates(.) %>%
+      as_tibble() %>%
+      .$X %>% 
+      as.character()
+  ) %>% 
+  left_join(tracks_tf_select,
+            by = c("lon", "llon"), 
+            
+  )
+
+mapview(test) + mapview(boundary_sf)
 
 
-tracks_sf 
 
-# group_by(tag.local.identifier) %>%
-#   summarise(do_union = FALSE) %>%
-#   st_cast("MULTILINESTRING")
-tracks_sf_ls <- tracks %>% 
-  st_as_sf(coords = c("location.long", "location.lat"), 
-           agr = "identity", 
-           crs = 4326) %>% 
-  group_by(tag.local.identifier) %>%
-  summarise(do_union = FALSE) %>%
-  st_cast("MULTILINESTRING")
-
-
-tracks_sf_ls 
-
-
-plot(tracks_sf)
-ggplot() + 
-  geom_sf(data = tracks_sf)
-# group_by(tag.local.identifier) %>%
-#   summarise(do_union = FALSE) %>%
-#   st_cast("MULTILINESTRING")
-
-glimpse(tracks)
-
-boundary_sf <- boundary %>% 
-  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
-  summarise(do_union = FALSE) %>%
-  st_cast("polygon")
 
 mapview(tracks_sf) + mapview(boundary_sf)
 
 
 tracks_sf <- tracks_sf %>% 
   mutate(
-    x_bnd = st_intersects(boundary_sf, tracks_sf, sparse = FALSE)[TRUE]
+    x_bnd = st_intersects(boundary_sf, test, sparse = FALSE)[TRUE]
   )
 
 
