@@ -5,6 +5,9 @@
   library(mapview)
   library(readr)
   library(sf)
+  make_line <- function(lon, lat, llon, llat) {
+    st_linestring(matrix(c(lon, llon, lat, llat), 2, 2,))
+  }
 }
 
 # ---- bring csv ---- 
@@ -53,35 +56,25 @@ tracks <- tracks %>%
     from_ts = lag(timestamp),
     from_lat = lag(location.lat),
     from_lon = lag(location.long),
-  ) %>% 
-  ungroup()
-
-# ts <- lt_switch %>%
-#   group_by(rec_source_ln) %>%
-#   summarise(n = n()) %>%
-#   ungroup()
-# 
-# View(ts)
-
-
-# remove the first time its heard which is NA
-lt <- lt %>% 
-  filter(!(rec_source_group == is.na(rec_source_group)))
-
-# paste to and from toegether 
-lt <- lt %>%
-  mutate(rec_source_to_dest = paste(rec_source_group, rec_dest_group, sep = "-"))
+  ) 
 
 
 
-
-
-
-
-
-
-
-tracks_sf <- tracks %>% 
+rep_path %>%
+  mutate(across(lon:llat, as.numeric)) %>% 
+  pmap(make_line) %>%
+  st_as_sfc(crs = 4326) %>%
+  st_sf() %>%  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  tracks_sf <- tracks %>% 
   st_as_sf(coords = c("location.long", "location.lat"), 
            # agr = "identity", # don't use arg and keep as points for now 
            crs = 4326) %>% 
