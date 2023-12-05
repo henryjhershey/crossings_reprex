@@ -2,7 +2,9 @@
 {
   library(dplyr)
   library(ggplot2)
+  library(lwgeom) # st_startpoint
   library(mapview)
+  library(purrr)
   library(readr)
   library(sf)
   make_line <- function(lon, lat, llon, llat) {
@@ -11,13 +13,19 @@
 }
 
 # ---- bring csv ---- 
-bear <- read_csv("bear.csv")
+bear <- read.csv("bear.csv")
 
 glimpse(bear)
 
 # ---- create example boundary ---- 
 boundary <- cbind.data.frame(lon = rep(14.21058, 4),
                              lat = c(46.01988, 45.93028, 45.86729, 45.82143))
+
+# ---- create example boundary sf ---- 
+boundary_sf <- boundary %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  summarise(do_union = FALSE) %>%
+  st_cast("LINESTRING")
 
 # ---- filter out tracks for example ---- 
 tracks <- bear[bear$tag.local.identifier %in% c("srecko", "mishko", "jana"), ]
