@@ -102,12 +102,27 @@ mapview(tracks_sf) + mapview(boundary_sf)
 # ---- add in TRUE/FALSE if linestring intersects our boundary ----- 
 tracks_sf <- tracks_sf %>% 
   mutate(
-    x_bnd = st_intersects(boundary_sf, test, sparse = FALSE)[TRUE]
+    x_bnd = st_intersects(boundary_sf, tracks_sf, sparse = FALSE)[TRUE]
   )
 
 glimpse(tracks_sf)
 
-
+tracks_sf_x <- tracks_sf %>% 
+  filter(x_bnd %in% TRUE)
  
-#find the nodes along individual bear tracks that straddle the boundary line.
-#in the real world example, the line is not perfectly north/south, so can't cheat with hardcoding the longitude
+
+# ----- plot all tracks that cross boundary ---- 
+ggplot() + 
+  geom_sf(data = boundary_sf, colour = "blue", linetype = 2) + 
+  geom_sf(data = tracks_sf_x)
+
+# we can see all tracks do indeed corss the boundary 
+
+# from here if we look at tracks_sf_x we can see the to and form timestamps 
+# the animal crosses from there earlier on timestamps need to be converted into 
+# posixct to take difference to know how long it took the animal to move across 
+# the boundary. 
+
+tracks_sf_x 
+# find the nodes along individual bear tracks that straddle the boundary line.
+# in the real world example, the line is not perfectly north/south, so can't cheat with hardcoding the longitude
